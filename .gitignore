@@ -3,6 +3,8 @@ node_modules
 dist
 .pgdata
 .minio
+.redis-data
+.yarn/
 
 .env.local
 .env
