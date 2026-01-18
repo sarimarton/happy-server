@@ -2,8 +2,8 @@ import pino from 'pino';
 import { mkdirSync } from 'fs';
 import { join } from 'path';
 
-// Single log file name created once at startup
-let consolidatedLogFile: string | undefined;
+// Single log file name created once at startup - exported for CLI UI
+export let consolidatedLogFile: string | undefined;
 
 if (process.env.DANGEROUSLY_LOG_TO_SERVER_FOR_AI_AUTO_DEBUGGING) {
     const logsDir = join(process.cwd(), '.logs');
@@ -17,7 +17,10 @@ if (process.env.DANGEROUSLY_LOG_TO_SERVER_FOR_AI_AUTO_DEBUGGING) {
         const min = String(now.getMinutes()).padStart(2, '0');
         const sec = String(now.getSeconds()).padStart(2, '0');
         consolidatedLogFile = join(logsDir, `${month}-${day}-${hour}-${min}-${sec}.log`);
-        console.log(`[PINO] Remote debugging logs enabled - writing to ${consolidatedLogFile}`);
+        // Only print to console if fancy UI is not enabled
+        if (process.env.HAPPY_FANCY_UI === 'false') {
+            console.log(`[PINO] Remote debugging logs enabled - writing to ${consolidatedLogFile}`);
+        }
     } catch (error) {
         console.error('Failed to create logs directory:', error);
     }
@@ -35,18 +38,43 @@ function formatLocalTime(timestamp?: number) {
 
 const transports: any[] = [];
 
-transports.push({
-    target: 'pino-pretty',
-    options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss.l',
-        ignore: 'pid,hostname',
-        messageFormat: '{msg}',
-        errorLikeObjectKeys: ['err', 'error'],
-    },
-});
+// When HAPPY_FANCY_UI is enabled, don't write to stdout - the Ink UI handles display
+const fancyUiEnabled = process.env.HAPPY_FANCY_UI !== 'false';
 
-if (process.env.DANGEROUSLY_LOG_TO_SERVER_FOR_AI_AUTO_DEBUGGING && consolidatedLogFile) {
+if (!fancyUiEnabled) {
+    // Normal mode: pretty print to stdout
+    transports.push({
+        target: 'pino-pretty',
+        options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss.l',
+            ignore: 'pid,hostname',
+            messageFormat: '{msg}',
+            errorLikeObjectKeys: ['err', 'error'],
+        },
+    });
+}
+
+// Always write to file when fancy UI is enabled, or when debug logging is enabled
+if (fancyUiEnabled || (process.env.DANGEROUSLY_LOG_TO_SERVER_FOR_AI_AUTO_DEBUGGING && consolidatedLogFile)) {
+    // Ensure we have a log file path
+    if (!consolidatedLogFile) {
+        const logsDir = join(process.cwd(), '.logs');
+        try {
+            mkdirSync(logsDir, { recursive: true });
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const sec = String(now.getSeconds()).padStart(2, '0');
+            consolidatedLogFile = join(logsDir, `${month}-${day}-${hour}-${min}-${sec}.log`);
+        } catch (error) {
+            // Fallback - write to /tmp
+            consolidatedLogFile = `/tmp/happy-server-${Date.now()}.log`;
+        }
+    }
+
     transports.push({
         target: 'pino/file',
         options: {

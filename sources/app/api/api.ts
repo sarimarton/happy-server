@@ -75,19 +75,4 @@ export async function startApi() {
 
     // Start Socket
     startSocket(typed);
-
-    // Startup banner
-    const tailscaleHostname = process.env.TAILSCALE_HOSTNAME;
-    console.log('');
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log(' Happy Server');
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('');
-    console.log(`  Local:      http://localhost:${port}`);
-    if (tailscaleHostname) {
-        console.log(`  Tailscale:  https://${tailscaleHostname}:${port}`);
-    }
-    console.log('');
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('');
 }
