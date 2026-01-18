@@ -68,7 +68,7 @@ export async function startApi() {
 
     // Start HTTP 
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3005;
-    await app.listen({ port, host: '0.0.0.0' });
+    await app.listen({ port, host: '127.0.0.1' });
     onShutdown('api', async () => {
         await app.close();
     });
@@ -76,6 +76,18 @@ export async function startApi() {
     // Start Socket
     startSocket(typed);
 
-    // End
-    log(`API ready on http://localhost:${port}`);
+    // Startup banner
+    const tailscaleHostname = process.env.TAILSCALE_HOSTNAME;
+    console.log('');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log(' Happy Server');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('');
+    console.log(`  Local:      http://localhost:${port}`);
+    if (tailscaleHostname) {
+        console.log(`  Tailscale:  https://${tailscaleHostname}:${port}`);
+    }
+    console.log('');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('');
 }
