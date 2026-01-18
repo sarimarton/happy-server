@@ -2,25 +2,16 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import { Spinner } from '@inkjs/ui';
 
-/**
- * Docker service status
- */
 export interface ServiceStatus {
     name: string;
     status: 'pending' | 'running' | 'done' | 'error';
 }
 
-/**
- * Setup phase status
- */
 export interface SetupPhase {
     name: string;
     status: 'pending' | 'running' | 'done' | 'error';
 }
 
-/**
- * Props for the StartupUI component
- */
 interface StartupUIProps {
     setupPhases: SetupPhase[];
     services: ServiceStatus[];
@@ -29,107 +20,88 @@ interface StartupUIProps {
     logPath: string;
 }
 
-/**
- * Main Ink component that displays the server startup UI.
- * Shows setup phases, Docker service status, server URLs, and startup state.
- */
+const WIDTH = 50;
+const LINE = '═'.repeat(WIDTH - 2);
+
 export function StartupUI({ setupPhases, services, isReady, port, logPath }: StartupUIProps): React.ReactElement {
     const tailscaleHostname = process.env.TAILSCALE_HOSTNAME;
-
-    // Check if all setup is done
     const setupDone = setupPhases.every(p => p.status === 'done');
     const currentPhase = setupPhases.find(p => p.status === 'running');
 
+    const pad = (text: string, len: number = WIDTH - 4) => {
+        const visible = text.replace(/\x1b\[[0-9;]*m/g, '');
+        return text + ' '.repeat(Math.max(0, len - visible.length));
+    };
+
     return (
-        <Box flexDirection="column" padding={1}>
-            {/* Header */}
-            <Box marginBottom={1}>
-                <Text bold color="cyan">═══════════════════════════════════════════════════════════════</Text>
-            </Box>
-            <Box marginBottom={1}>
-                <Text bold color="cyan">  Happy Server</Text>
-            </Box>
-            <Box marginBottom={1}>
-                <Text bold color="cyan">═══════════════════════════════════════════════════════════════</Text>
-            </Box>
+        <Box flexDirection="column">
+            {/* Top border */}
+            <Text color="cyan">╔{LINE}╗</Text>
+            <Text color="cyan">║<Text bold>  Happy Server</Text>{' '.repeat(WIDTH - 16)}║</Text>
+            <Text color="cyan">╠{LINE}╣</Text>
 
             {/* Setup Phases */}
             {!setupDone && (
-                <Box flexDirection="column" marginBottom={1}>
-                    <Text bold dimColor>Setup:</Text>
+                <>
+                    <Text color="cyan">║  <Text dimColor>Setup:</Text>{' '.repeat(WIDTH - 12)}║</Text>
                     {setupPhases.map((phase) => (
-                        <Box key={phase.name}>
-                            {phase.status === 'running' ? (
-                                <Text color="yellow">  ◐ {phase.name}...</Text>
-                            ) : phase.status === 'done' ? (
-                                <Text color="green">  ✓ {phase.name}</Text>
-                            ) : phase.status === 'error' ? (
-                                <Text color="red">  ✗ {phase.name}</Text>
-                            ) : (
-                                <Text dimColor>  ○ {phase.name}</Text>
-                            )}
-                        </Box>
+                        <Text key={phase.name} color="cyan">
+                            ║  <Text color={
+                                phase.status === 'running' ? 'yellow' :
+                                phase.status === 'done' ? 'green' :
+                                phase.status === 'error' ? 'red' : 'gray'
+                            }>
+                                {phase.status === 'running' ? '◐' :
+                                 phase.status === 'done' ? '✓' :
+                                 phase.status === 'error' ? '✗' : '○'} {pad(phase.name, WIDTH - 7)}
+                            </Text>║
+                        </Text>
                     ))}
-                </Box>
+                    <Text color="cyan">║{' '.repeat(WIDTH - 2)}║</Text>
+                    {currentPhase && (
+                        <Text color="cyan">║  <Spinner label={pad(currentPhase.name, WIDTH - 6)} />║</Text>
+                    )}
+                </>
             )}
 
-            {/* Docker Services - only show after setup */}
+            {/* Services - only show after setup */}
             {setupDone && (
-                <Box flexDirection="column" marginBottom={1}>
-                    <Text bold dimColor>Services:</Text>
+                <>
+                    <Text color="cyan">║  <Text dimColor>Services:</Text>{' '.repeat(WIDTH - 14)}║</Text>
                     {services.map((service) => (
-                        <Box key={service.name}>
-                            {service.status === 'done' ? (
-                                <Text color="green">  ✓ {service.name}</Text>
-                            ) : service.status === 'running' ? (
-                                <Text color="yellow">  ◐ {service.name}</Text>
-                            ) : service.status === 'error' ? (
-                                <Text color="red">  ✗ {service.name}</Text>
-                            ) : (
-                                <Text dimColor>  ○ {service.name}</Text>
-                            )}
-                        </Box>
+                        <Text key={service.name} color="cyan">
+                            ║  <Text color={service.status === 'done' ? 'green' : 'gray'}>
+                                {service.status === 'done' ? '✓' : '○'} {pad(service.name, WIDTH - 7)}
+                            </Text>║
+                        </Text>
                     ))}
-                </Box>
+                    <Text color="cyan">║{' '.repeat(WIDTH - 2)}║</Text>
+                </>
             )}
 
-            {/* Server Status */}
-            <Box flexDirection="column" marginBottom={1}>
-                {isReady ? (
-                    <>
-                        <Text bold dimColor>URLs:</Text>
-                        <Text>  Local:      http://localhost:{port}</Text>
-                        {tailscaleHostname && (
-                            <Text>  Tailscale:  https://{tailscaleHostname}:{port}</Text>
-                        )}
-                    </>
-                ) : currentPhase ? (
-                    <Box>
-                        <Spinner label={`${currentPhase.name}...`} />
-                    </Box>
-                ) : setupDone ? (
-                    <Box>
-                        <Spinner label="Starting server..." />
-                    </Box>
-                ) : null}
-            </Box>
+            {/* URLs */}
+            {isReady ? (
+                <>
+                    <Text color="cyan">║  <Text dimColor>URLs:</Text>{' '.repeat(WIDTH - 10)}║</Text>
+                    <Text color="cyan">║  Local:     <Text bold>{pad(`http://localhost:${port}`, WIDTH - 15)}</Text>║</Text>
+                    {tailscaleHostname && (
+                        <Text color="cyan">║  Tailscale: <Text bold>{pad(`https://${tailscaleHostname}:${port}`, WIDTH - 15)}</Text>║</Text>
+                    )}
+                    <Text color="cyan">║{' '.repeat(WIDTH - 2)}║</Text>
+                </>
+            ) : setupDone && !currentPhase ? (
+                <Text color="cyan">║  <Spinner label={pad('Starting server', WIDTH - 6)} />║</Text>
+            ) : null}
 
             {/* Log Path */}
             {logPath && (
-                <Box marginBottom={1}>
-                    <Text dimColor>Logs: {logPath}</Text>
-                </Box>
+                <Text color="cyan">║  <Text dimColor>Logs: {pad(logPath, WIDTH - 10)}</Text>║</Text>
             )}
 
-            {/* Footer */}
-            <Box marginTop={1}>
-                <Text bold color="cyan">═══════════════════════════════════════════════════════════════</Text>
-            </Box>
-            <Box>
-                <Text dimColor>Press </Text>
-                <Text bold>Ctrl+C</Text>
-                <Text dimColor> to stop</Text>
-            </Box>
+            {/* Bottom border */}
+            <Text color="cyan">╠{LINE}╣</Text>
+            <Text color="cyan">║  <Text dimColor>Ctrl+C to stop</Text>{' '.repeat(WIDTH - 18)}║</Text>
+            <Text color="cyan">╚{LINE}╝</Text>
         </Box>
     );
 }
