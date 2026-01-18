@@ -41,7 +41,7 @@ transports.push({
         colorize: true,
         translateTime: 'HH:MM:ss.l',
         ignore: 'pid,hostname',
-        messageFormat: '{levelLabel} {msg} | [{time}]',
+        messageFormat: '{msg}',
         errorLikeObjectKeys: ['err', 'error'],
     },
 });
