@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "start": "tsx ./sources/main.ts",
-    "dev": "lsof -ti tcp:25718 | xargs kill -9 2>/dev/null; tsx --env-file=.env ./sources/main.ts",
+    "dev": "lsof -ti tcp:25718 | xargs kill -9 2>/dev/null; tsx ./sources/main.ts",
     "test": "vitest run",
     "migrate": "dotenv -e .env -- prisma migrate dev",
     "migrate:reset": "dotenv -e .env -- prisma migrate reset",

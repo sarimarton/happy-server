@@ -1,3 +1,6 @@
+import { config } from "dotenv";
+config({ override: true });
+
 import { startApi } from "@/app/api/api";
 import { log } from "@/utils/log";
 import { awaitShutdown, onShutdown } from "@/utils/shutdown";
