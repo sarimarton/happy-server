@@ -21,7 +21,6 @@ import { enableAuthentication } from "./utils/enableAuthentication";
 import { userRoutes } from "./routes/userRoutes";
 import { feedRoutes } from "./routes/feedRoutes";
 import { kvRoutes } from "./routes/kvRoutes";
-
 export async function startApi() {
 
     // Configure
@@ -78,5 +77,5 @@ export async function startApi() {
     startSocket(typed);
 
     // End
-    log('API ready on port http://localhost:' + port);
+    log(`API ready on http://localhost:${port}`);
 }
