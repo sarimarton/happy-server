@@ -30,6 +30,9 @@ export function StartupUI({ setupPhases, services, isReady, port, logPath }: Sta
 
     const pad = (text: string, len: number = WIDTH - 4) => {
         const visible = text.replace(/\x1b\[[0-9;]*m/g, '');
+        if (visible.length > len) {
+            return text.substring(0, len - 3) + '...';
+        }
         return text + ' '.repeat(Math.max(0, len - visible.length));
     };
 
@@ -87,9 +90,9 @@ export function StartupUI({ setupPhases, services, isReady, port, logPath }: Sta
             {isReady ? (
                 <>
                     <Text color="cyan">║  <Text dimColor>URLs:</Text>{' '.repeat(WIDTH - 10)}║</Text>
-                    <Text color="cyan">║  Local:     <Text bold>{pad(`http://localhost:${port}`, WIDTH - 15)}</Text>║</Text>
+                    <Text color="cyan">║  Local:     <Text bold>{pad(`http://localhost:${port}`, WIDTH - 16)}</Text>║</Text>
                     {tailscaleHostname && (
-                        <Text color="cyan">║  Tailscale: <Text bold>{pad(`https://${tailscaleHostname}:${port}`, WIDTH - 15)}</Text>║</Text>
+                        <Text color="cyan">║  Tailscale: <Text bold>{pad(`https://${tailscaleHostname}:${port}`, WIDTH - 16)}</Text>║</Text>
                     )}
                     <Text color="cyan">║{' '.repeat(WIDTH - 2)}║</Text>
                 </>
