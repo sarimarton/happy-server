@@ -59,7 +59,11 @@ export function StartupUI({ setupPhases, services, isReady, port, logPath }: Sta
                     ))}
                     <Text color="cyan">║{' '.repeat(WIDTH - 2)}║</Text>
                     {currentPhase && (
-                        <Text color="cyan">║  <Spinner label={pad(currentPhase.name, WIDTH - 6)} />║</Text>
+                        <Box>
+                            <Text color="cyan">║  </Text>
+                            <Spinner />
+                            <Text color="cyan"> {pad(currentPhase.name, WIDTH - 9)}║</Text>
+                        </Box>
                     )}
                 </>
             )}
@@ -90,7 +94,11 @@ export function StartupUI({ setupPhases, services, isReady, port, logPath }: Sta
                     <Text color="cyan">║{' '.repeat(WIDTH - 2)}║</Text>
                 </>
             ) : setupDone && !currentPhase ? (
-                <Text color="cyan">║  <Spinner label={pad('Starting server', WIDTH - 6)} />║</Text>
+                <Box>
+                    <Text color="cyan">║  </Text>
+                    <Spinner />
+                    <Text color="cyan"> {pad('Starting server', WIDTH - 9)}║</Text>
+                </Box>
             ) : null}
 
             {/* Log Path */}
